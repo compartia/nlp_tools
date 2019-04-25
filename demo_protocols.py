@@ -9,9 +9,23 @@ from renderer import AbstractRenderer
 from transaction_values import extract_sum_from_tokens
 
 
+
 class ProtocolRenderer(AbstractRenderer):
   pass
 
+def select_most_confident_if_almost_equal( a: ProbableValue, alternative: ProbableValue,
+                                          equality_range=0.0):
+
+  try:
+    if abs (a.value.value -  alternative.value.value) < equality_range:
+      if a.confidence > alternative.confidence:
+        return a
+      else:
+        return alternative
+  except:
+    return a
+
+  return a
 
 # from split import *
 # ----------------------
@@ -20,6 +34,19 @@ class ProtocolDocument(BasicContractDocument):
     LegalDocument.__init__(self, original_text)
 
     self.values: List[ProbableValue] = []
+
+  def get_found_sum(self):
+
+    print(f'deprecated: {self.get_found_sum}, use  .values')
+    best_value: ProbableValue = max(self.values,
+                                    key=lambda item: item.value.value)
+
+    most_confident_value = max(self.values, key=lambda item: item.confidence)
+    best_value = select_most_confident_if_almost_equal(best_value, most_confident_value )
+    return best_value
+
+  found_sum = property (get_found_sum)
+
 
   @deprecated
   def _find_values_OLD(self, pattern_factory):
@@ -45,6 +72,8 @@ class ProtocolDocument(BasicContractDocument):
     f, sentence = extract_sum_from_tokens(sentence_tokens)
 
     self.found_sum = (f, (start, end), sentence, meta)
+
+
 
   def find_sections_indexes(self, distances_per_section_pattern, min_section_size=20):
     x = distances_per_section_pattern
