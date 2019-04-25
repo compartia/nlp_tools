@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from demo import ParsingContext
-
 from legal_docs import BasicContractDocument, LegalDocument, deprecated
+from parsing import ParsingContext
 from patterns import *
 from renderer import AbstractRenderer
 from transaction_values import extract_sum_from_tokens
@@ -81,8 +80,8 @@ class ProtocolDocument(BasicContractDocument):
 
 class ProtocolAnlysingContext(ParsingContext):
   def __init__(self, embedder, renderer: ProtocolRenderer):
-    ParsingContext.__init__(self, embedder, renderer)
-
+    ParsingContext.__init__(self, embedder)
+    self.renderer: AbstractRenderer = renderer
     self.protocols_factory = None
 
     self.protocol: ProtocolDocument = None
@@ -101,6 +100,7 @@ class ProtocolAnlysingContext(ParsingContext):
     # ----
 
     protocol = ProtocolDocument(text)
+    print(f"ProtocolDocument text: len({len(text)})")
     protocol.parse()
 
     self.protocol = protocol
